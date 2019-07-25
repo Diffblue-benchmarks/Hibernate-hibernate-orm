@@ -1,0 +1,305 @@
+buildCmd: ./gradlew build -x test
+testCmd: true
+skipVerification: true
+# Copyright 2019 Diffblue Limited. All Rights Reserved.
+cbmcArguments:
+  # Do not generate coverage comments on generated tests.
+  java-generate-no-comments: true
+  # Constrain the size of arrays created in the analyzed code.
+  java-max-vla-length: 100000
+phases:
+  -
+    # Phase 0 PRETTY, SIMPLE and SMART - pretty tests, do not test private methods directly, Smart-Harness
+    timeout: 180
+    cbmcArguments:
+      # Use simple models first containers (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # Instrument the file as opposed to the function only
+      cover-only: file
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Instantiate classes using the simplest constructor strategy
+      smart-harness: simplest-constructor-and-nondet
+  -
+    # Phase 1 PRETTY AND COMPLEX - standard models only, pretty tests, do not test private methods directly, input factory
+    timeout: 180
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 2
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+      # Limit input factory recursive depth (default 0 = no recursion allowed)
+      java-test-input-factory-bmc-recursion-limit: 4
+  -
+    # Phase 2 FIFO Strategy - pretty tests, do not test private methods directly, fifo
+    timeout: 100
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Add constraint that strings are printable
+      max-nondet-string-length: 100
+      # Explores the program tree breadth-first.
+      paths: fifo
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: false
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 3 Exceptions - do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 30
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 4 Direct testing - test private methods directly, increased reflection
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # If the logs contain output of the following then proceed to phase X
+    nextPhase:
+      # If the function is not analysable then do not pass onto the next phase
+      not_analyzed: null
+  -
+    # PHASE 5 Mocking - aggressive mocking, do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 3000
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Only load the class (and related inner/outer classes) containing the method under test,
+      load-containing-class-only: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 100
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+units:
+ - target:
+   - dir: tooling/metamodel-generator/target/classes/java/main
+     file: org/hibernate/jpamodelgen/util/StringUtil.class
+     sourceDir: tooling/metamodel-generator/src/main/java
+     sourceFile: org/hibernate/jpamodelgen/util/StringUtil.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/mapping/PropertyGeneration.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/mapping/PropertyGeneration.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/boot/jaxb/internal/stax/XMLStreamConstantsUtils.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/boot/jaxb/internal/stax/XMLStreamConstantsUtils.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/StringHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/StringHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/StringHelper$Renderer.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/StringHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/boot/model/source/internal/hbm/CommaSeparatedStringHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/boot/model/source/internal/hbm/CommaSeparatedStringHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/collections/ArrayHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/collections/ArrayHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/dialect/Dialect.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/dialect/Dialect.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/engine/internal/Versioning.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/engine/internal/Versioning.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/persister/entity/EntityPersister.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/persister/entity/EntityPersister.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/engine/spi/SharedSessionContractImplementor.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/engine/spi/SharedSessionContractImplementor.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/type/VersionType.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/type/VersionType.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/collections/ArrayHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/collections/ArrayHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/HibernateException.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/HibernateException.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/type/Type.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/type/Type.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/LockOptions.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/LockOptions.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/LockMode.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/LockMode.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/config/ConfigurationHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/config/ConfigurationHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/HibernateException.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/HibernateException.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/StringHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/StringHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/config/ConfigurationException.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/config/ConfigurationException.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/collections/ArrayHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/collections/ArrayHelper.java
+ - target:
+   - dir: hibernate-envers/target/classes/java/main
+     file: org/hibernate/envers/internal/tools/StringTools.class
+     sourceDir: hibernate-envers/src/main/java
+     sourceFile: org/hibernate/envers/internal/tools/StringTools.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/BytesHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/BytesHelper.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/StringHelper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/StringHelper.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/internal/util/xml/XMLStreamConstantsUtils.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/internal/util/xml/XMLStreamConstantsUtils.java
+ - target:
+   - dir: hibernate-envers/target/classes/java/main
+     file: org/hibernate/envers/internal/tools/ArraysTools.class
+     sourceDir: hibernate-envers/src/main/java
+     sourceFile: org/hibernate/envers/internal/tools/ArraysTools.java
+ - target:
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/type/descriptor/sql/LobTypeMappings.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/type/descriptor/sql/LobTypeMappings.java
+   - dir: hibernate-core/target/classes/java/main
+     file: org/hibernate/type/descriptor/JdbcTypeNameMapper.class
+     sourceDir: hibernate-core/src/main/java
+     sourceFile: org/hibernate/type/descriptor/JdbcTypeNameMapper.java
